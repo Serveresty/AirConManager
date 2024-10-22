@@ -101,6 +101,8 @@ private:
     void setTempRange();
     void setHumRange();
     void setPresRange();
+
+    QString getLockStyle();
 };
 
 #endif

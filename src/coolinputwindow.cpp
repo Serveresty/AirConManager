@@ -55,6 +55,7 @@ void CoolInput::setMinMaxTempUnit(double minT, double maxT) {
 void CoolInput::setMinMaxHumUnit(double minH, double maxH) {
     humDSpinBox->setMinimum(minH);
     humDSpinBox->setMaximum(maxH);
+    humDSpinBox->setDecimals(0);
 }
 
 void CoolInput::setMinMaxPresUnit(double minP, double maxP) {

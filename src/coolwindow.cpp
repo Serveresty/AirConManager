@@ -42,6 +42,7 @@ CoolWindow::CoolWindow(QWidget *parent)
     openInput = new QPushButton("Изменить входные параметры", this);
     openInput->setMinimumHeight(50);
     openInput->setMaximumWidth(300);
+    openInput->setEnabled(isOn);
 
     buttonsLayout->addWidget(onOffButton);
     buttonsLayout->addWidget(openSettings);
@@ -256,15 +257,15 @@ void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
 }
 
 void CoolWindow::toggleIndicator() {
+    isOn = !isOn;
     if (isOn) {
-        onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
-        onOffButton->setText("Вкл");
-        isOn = false;
-    } else {
         onOffLabel->setStyleSheet("border-radius: 5px; background-color:green;");
         onOffButton->setText("Выкл");
-        isOn = true;
+    } else {
+        onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
+        onOffButton->setText("Вкл");
     }
+    openInput->setEnabled(isOn);
 }
 
 void CoolWindow::openSettingsWindow() {
@@ -293,8 +294,22 @@ void CoolWindow::openSettingsWindow() {
 void CoolWindow::openInputWindow() {
     if (!inputWindow) {
         inputWindow = new CoolInput(this);
+
+        QString origStOnOff = onOffButton->styleSheet();
+        QString origStOpSet = openSettings->styleSheet();
+        onOffButton->setEnabled(false);
+        openSettings->setEnabled(false);
+
+        QString lockStyle = getLockStyle();
+        onOffButton->setStyleSheet(lockStyle);
+        openSettings->setStyleSheet(lockStyle);
         connect(inputWindow, &QDialog::finished, this, [=]() {
             inputWindow = nullptr;
+            onOffButton->setEnabled(true);
+            openSettings->setEnabled(true);
+
+            onOffButton->setStyleSheet(origStOnOff);
+            openSettings->setStyleSheet(origStOpSet);
         });
 
         connect(inputWindow, &CoolInput::sendInputData, this, &CoolWindow::acceptNewData);
@@ -307,6 +322,17 @@ void CoolWindow::openInputWindow() {
     inputWindow->show();
     inputWindow->raise();
     inputWindow->activateWindow();
+}
+
+QString CoolWindow::getLockStyle() {
+    switch (currentTheme) {
+        case Theme::Dark:
+            return "background-color: rgba(169, 169, 169, 150); border: 1px solid white;";
+        case Theme::Light:
+            return "background-color: rgba(169, 169, 169, 150); border: 1px solid black;";
+        default:
+            return "background-color: rgba(169, 169, 169, 150); border: 1px solid black;";
+    }
 }
 
 void CoolWindow::setTempRange() {
