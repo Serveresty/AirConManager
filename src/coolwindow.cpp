@@ -1,5 +1,4 @@
 #include "../includes/coolwindow.h"
-#include <QDebug>
 #include <QFile>
 #include <QDomDocument>
 #include <QDomElement>
@@ -650,14 +649,12 @@ void CoolWindow::loadSettings(const QString &filePath) {
     QFile file(filePath);
 
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Failed to open XML.";
         setBaseSettings();
         return;
     }
 
     QDomDocument doc;
     if (!doc.setContent(&file)) {
-        qDebug() << "Failed to parse XML.";
         file.close();
         setBaseSettings();
         return;

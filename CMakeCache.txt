@@ -23,6 +23,9 @@ AirConManager_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 AirConManager_SOURCE_DIR:STATIC=E:/cppProj/AirConManager
 
+//No help, variable specified on the command line.
+CMAKE_BUILD_TYPE:UNINITIALIZED=Release
+
 //Value Computed by CMake.
 CMAKE_FIND_PACKAGE_REDIRECTS_DIR:STATIC=E:/cppProj/AirConManager/CMakeFiles/pkgRedirects
 

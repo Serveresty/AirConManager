@@ -30,7 +30,7 @@ set(SOURCES
 )
 
 # Создаем исполняемый файл
-add_executable(AirConManager ${SOURCES})
+add_executable(AirConManager WIN32 ${SOURCES})
 
 # Линкуем с библиотеками Qt
 target_link_libraries(AirConManager Qt5::Widgets Qt5::Core Qt5::Xml Qt5::Gui)
