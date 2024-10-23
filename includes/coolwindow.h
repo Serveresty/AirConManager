@@ -62,6 +62,8 @@ private:
     double *temperature;
     double *humidity;
     double *pressure;
+    int *hGateDir;
+    int *vGateDir;
     TemperatureUnit currentTempUnit;
     PressureUnit currentPresUnit;
     Theme currentTheme;
@@ -69,6 +71,10 @@ private:
     QFrame *temperatureFrame;
     QFrame *humidityFrame;
     QFrame *pressureFrame;
+
+    // Посмотреть что будет
+    QFrame *vFrame;
+    QFrame *hFrame;
 
     QHBoxLayout *buttonsLayout;
     QPushButton *onOffButton;
@@ -109,6 +115,15 @@ private:
 
     void recalculateTemp(TemperatureUnit from, TemperatureUnit to);
     void recalculatePres(PressureUnit from, PressureUnit to);
+
+    void addAirUp();
+    void addAirDown();
+    void addAirLeft();
+    void addAirRight();
+    int getMinHDir();
+    int getMaxHDir();
+    int getMinVDir();
+    int getMaxVDir();
 
     void saveSettings(const QString &filePath);
     void loadSettings(const QString &filePath);

@@ -9,6 +9,8 @@ CoolWindow::CoolWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     loadSettings("user_settings.xml");
+    hGateDir = new int(0);
+    vGateDir = new int(0);
 
     this->setMinimumSize(800,600);
     this->setMaximumSize(1024, 768);
@@ -96,6 +98,10 @@ CoolWindow::CoolWindow(QWidget *parent)
     connect(openInput, &QPushButton::clicked, this, &CoolWindow::openInputWindow);
     connect(tempUp, &QPushButton::clicked, this, &CoolWindow::temperatureUp);
     connect(tempDown, &QPushButton::clicked, this, &CoolWindow::temperatureDown);
+    connect(airUp, &QPushButton::clicked, this, &CoolWindow::addAirUp);
+    connect(airDown, &QPushButton::clicked, this, &CoolWindow::addAirDown);
+    connect(airLeft, &QPushButton::clicked, this, &CoolWindow::addAirLeft);
+    connect(airRight, &QPushButton::clicked, this, &CoolWindow::addAirRight);
 }
 
 void CoolWindow::setCurrentTheme() {
@@ -242,6 +248,46 @@ void CoolWindow::temperatureDown() {
     temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
 }
 
+void CoolWindow::addAirUp() {
+    if (*hGateDir + 5 <= getMaxHDir()) {
+        *hGateDir = *hGateDir + 5;
+    }
+}
+
+void CoolWindow::addAirDown() {
+    if (*hGateDir - 5 >= getMinHDir()) {
+        *hGateDir = *hGateDir - 5;
+    }
+}
+
+void CoolWindow::addAirLeft() {
+    if (*vGateDir + 5 <= getMaxVDir()) {
+        *vGateDir = *vGateDir + 5;
+    }
+}
+
+void CoolWindow::addAirRight() {
+    if (*vGateDir - 5 >= getMinVDir()) {
+        *vGateDir = *vGateDir - 5;
+    }
+}
+
+int CoolWindow::getMinHDir() {
+    return 0;
+}
+
+int CoolWindow::getMaxHDir() {
+    return 90;
+}
+
+int CoolWindow::getMinVDir() {
+    return -45;
+}
+
+int CoolWindow::getMaxVDir() {
+    return 45;
+}
+
 QString CoolWindow::getPressureScaleByUnitId(PressureUnit id) {
     switch (id) {
         case PressureUnit::Pascal:
@@ -329,9 +375,7 @@ void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
     }
     if (from == PressureUnit::Pascal) {
         if (to == PressureUnit::Mmhg) {
-            qDebug() << *pressure;
             *pressure = *pressure / (133.3224);
-            qDebug() << *pressure;
             return;
         }
     }
