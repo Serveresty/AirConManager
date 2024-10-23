@@ -16,6 +16,7 @@ set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/mingw81_64")
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt5 REQUIRED COMPONENTS Xml)
+find_package(Qt5 REQUIRED COMPONENTS Gui)
 
 # Пути к исходникам и заголовкам
 set(SOURCES
@@ -32,4 +33,4 @@ set(SOURCES
 add_executable(AirConManager ${SOURCES})
 
 # Линкуем с библиотеками Qt
-target_link_libraries(AirConManager Qt5::Widgets Qt5::Core Qt5::Xml)
+target_link_libraries(AirConManager Qt5::Widgets Qt5::Core Qt5::Xml Qt5::Gui)

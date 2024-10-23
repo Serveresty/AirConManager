@@ -63,6 +63,12 @@ void CoolInput::setMinMaxPresUnit(double minP, double maxP) {
     presDSpinBox->setMaximum(maxP);
 }
 
+void CoolInput::setCurrentValues(double tmp, double hum, double pres) {
+    tempDSpinBox->setValue(tmp);
+    humDSpinBox->setValue(hum);
+    presDSpinBox->setValue(pres);
+}
+
 CoolInput::~CoolInput()
 {
 }

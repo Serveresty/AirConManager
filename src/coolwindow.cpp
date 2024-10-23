@@ -23,14 +23,28 @@ CoolWindow::CoolWindow(QWidget *parent)
     onOffLabel->setFixedSize(10,10);
     onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
 
-    temperatureFrame = createDataFrames("Температура", temperature, getTemperatureScaleByUnitId(currentTempUnit));
-    humidityFrame = createDataFrames("Влажность", humidity, "%");
-    pressureFrame = createDataFrames("Давление", pressure, getPressureScaleByUnitId(currentPresUnit));
+    scene = new QGraphicsScene(this);
+    view = new QGraphicsView(scene);
+    view->setStyleSheet("border: 0px;");
+
+    thermometer = scene->addRect(50, 10, 30, 300);
+    mercuryLevel = scene->addRect(51, 310, 28, 0, QPen(), QBrush(Qt::red));
+
+    humidityScale = scene->addRect(150, 10, 30, 300);
+    humidityLevel = scene->addRect(151, 310, 28, 0, QPen(), QBrush(Qt::blue));
+
+    pressureScale = scene->addRect(250, 10, 30, 300);
+    pressureLevel = scene->addRect(251, 310, 28, 0, QPen(), QBrush(Qt::magenta));
+
+    temperatureText = scene->addText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
+    temperatureText->setPos(40, 320);
+    humidityText = scene->addText("В: " + QString::number(*humidity) + " %");
+    humidityText->setPos(150, 320);
+    pressureText = scene->addText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
+    pressureText->setPos(220, 320);
 
     dataLayout->addWidget(onOffLabel);
-    dataLayout->addWidget(temperatureFrame);
-    dataLayout->addWidget(humidityFrame);
-    dataLayout->addWidget(pressureFrame);
+    dataLayout->addWidget(view);
 
     buttonsLayout = new QHBoxLayout;
     onOffButton = new QPushButton("Вкл", this);
@@ -89,6 +103,9 @@ CoolWindow::CoolWindow(QWidget *parent)
     mainLayout->addLayout(dataLayout);
     mainLayout->addLayout(buttonsLayout);
 
+    setTemp();
+    setHum();
+    setPres();
     setCurrentTheme();
 
     centralWidget->setLayout(mainLayout);
@@ -129,6 +146,16 @@ void CoolWindow::applyDarkTheme() {
     airDown->setStyleSheet("border: 1px solid white;");
     airLeft->setStyleSheet("border: 1px solid white;");
     airRight->setStyleSheet("border: 1px solid white;");
+    temperatureText->setDefaultTextColor(Qt::white);
+    humidityText->setDefaultTextColor(Qt::white);
+    pressureText->setDefaultTextColor(Qt::white);
+
+    QPen pen;
+    pen.setColor(Qt::white);
+    pen.setWidth(1);
+    thermometer->setPen(pen);
+    humidityScale->setPen(pen);
+    pressureScale->setPen(pen);
 
     currentTheme = Theme::Dark;
 }
@@ -144,6 +171,16 @@ void CoolWindow::applyLightTheme() {
     airDown->setStyleSheet("border: 1px solid black;");
     airLeft->setStyleSheet("border: 1px solid black;");
     airRight->setStyleSheet("border: 1px solid black;");
+    temperatureText->setDefaultTextColor(Qt::black);
+    humidityText->setDefaultTextColor(Qt::black);
+    pressureText->setDefaultTextColor(Qt::black);
+
+    QPen pen;
+    pen.setColor(Qt::black);
+    pen.setWidth(1);
+    thermometer->setPen(pen);
+    humidityScale->setPen(pen);
+    pressureScale->setPen(pen);
 
     currentTheme = Theme::Light;
 }
@@ -155,13 +192,31 @@ void CoolWindow::acceptNewData(double tData, double hData, double pData) {
     humidity = new double(hData);
     delete pressure;
     pressure = new double(pData);
-    QString newT = QString::number(tData);
-    QString newH = QString::number(hData);
-    QString newP = QString::number(pData);
 
-    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
-    humidityFrame->findChild<QLabel*>("valueWidget")->setText(newH);
-    pressureFrame->findChild<QLabel*>("valueWidget")->setText(newP);
+    setTemp();
+    setHum();
+    setPres();
+    temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
+    humidityText->setPlainText("В: " + QString::number(*humidity) + " %");
+    pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
+}
+
+void CoolWindow::setTemp() {
+    double minT = getMinTempForCurrentUnit();
+    double maxT = getMaxTempForCurrentUnit();
+    double range = 300/(maxT-minT);
+    mercuryLevel->setRect(51, 310 - (*temperature - minT) * range, 28, (*temperature - minT) * range);
+}
+
+void CoolWindow::setHum() {
+    humidityLevel->setRect(151, 310 - *humidity * 3, 28, *humidity * 3);
+}
+
+void CoolWindow::setPres() {
+    double minP = getMinPresForCurrentUnit();
+    double maxP = getMaxPresForCurrentUnit();
+    double range = 300/(maxP-minP);
+    pressureLevel->setRect(251, 310 - (*pressure - minP) * range, 28, (*pressure - minP) * range);
 }
 
 void CoolWindow::acceptSettings(int tempId, int presId) {
@@ -171,17 +226,15 @@ void CoolWindow::acceptSettings(int tempId, int presId) {
     recalculateTemp(currentTempUnit, tid);
     recalculatePres(currentPresUnit, pid);
 
-    QString newT = QString::number(*temperature);
-    QString newP = QString::number(*pressure);
-
-    temperatureFrame->findChild<QLabel*>("scaleWidget")->setText(getTemperatureScaleByUnitId(tid));
-    pressureFrame->findChild<QLabel*>("scaleWidget")->setText(getPressureScaleByUnitId(pid));
-
-    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
-    pressureFrame->findChild<QLabel*>("valueWidget")->setText(newP);
-
     currentTempUnit = tid;
     currentPresUnit = pid;
+
+    setTemp();
+    setHum();
+    setPres();
+    temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
+    humidityText->setPlainText("В: " + QString::number(*humidity) + " %");
+    pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
 }
 
 QString CoolWindow::getTemperatureScaleByUnitId(TemperatureUnit id) {
@@ -226,8 +279,8 @@ void CoolWindow::temperatureUp() {
             break;
     }
 
-    QString newT = QString::number(*temperature);
-    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
+    setTemp();
+    temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
 }
 
 void CoolWindow::temperatureDown() {
@@ -244,8 +297,8 @@ void CoolWindow::temperatureDown() {
             break;
     }
 
-    QString newT = QString::number(*temperature);
-    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
+    setTemp();
+    temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
 }
 
 void CoolWindow::addAirUp() {
@@ -483,7 +536,8 @@ void CoolWindow::openInputWindow() {
 
         inputWindow->setMinMaxTempUnit(getMinTempForCurrentUnit(), getMaxTempForCurrentUnit());
         setHumRange();
-        setPresRange();
+        inputWindow->setMinMaxPresUnit(getMinPresForCurrentUnit(), getMaxPresForCurrentUnit());
+        inputWindow->setCurrentValues(*temperature, *humidity, *pressure);
     }
     
     inputWindow->show();
@@ -536,25 +590,26 @@ void CoolWindow::setHumRange() {
     inputWindow->setMinMaxHumUnit(minH, maxH);
 }
 
-void CoolWindow::setPresRange() {
-    double minP, maxP;
-
+double CoolWindow::getMinPresForCurrentUnit() {
     switch (currentPresUnit) {
         case PressureUnit::Pascal:
-            minP = 87000.0;
-            maxP = 108500.0;
-            break;
+            return 87000.0;
         case PressureUnit::Mmhg:
-            minP = 652.0;
-            maxP = 814.0;
-            break;
+            return 652.0;
         default:
-            minP = 760.0;
-            maxP = 760.0;
-            break;
+            return 87000.0;
     }
+}
 
-    inputWindow->setMinMaxPresUnit(minP, maxP);
+double CoolWindow::getMaxPresForCurrentUnit() {
+    switch (currentPresUnit) {
+        case PressureUnit::Pascal:
+            return 108500.0;
+        case PressureUnit::Mmhg:
+            return 814.0;
+        default:
+            return 108500.0;
+    }
 }
 
 void CoolWindow::saveSettings(const QString &filePath) {
@@ -633,39 +688,6 @@ void CoolWindow::setBaseSettings() {
     currentTempUnit = TemperatureUnit::Celsius;
     currentPresUnit = PressureUnit::Pascal;
     currentTheme = Theme::Light;
-}
-
-QFrame* CoolWindow::createDataFrames(const QString& label, double* value, const QString& scale) {
-    QFrame *frame = new QFrame();
-    frame->setFrameShape(QFrame::Box);
-    frame->setFixedSize(150,150);
-
-    QVBoxLayout *mLayout = new QVBoxLayout(frame);
-
-    QVBoxLayout *layout = new QVBoxLayout;
-    QHBoxLayout *dataLt = new QHBoxLayout;
-    QLabel *labelWidget = new QLabel(label);
-    labelWidget->setAlignment(Qt::AlignCenter);
-
-    QString valueString = QString::number(*value);
-
-    QLabel *valueWidget = new QLabel(valueString);
-    valueWidget->setAlignment(Qt::AlignRight);
-    valueWidget->setObjectName("valueWidget");
-
-    QLabel *scaleWidget = new QLabel(scale);
-    scaleWidget->setAlignment(Qt::AlignLeft);
-    scaleWidget->setObjectName("scaleWidget");
-
-    mLayout->addLayout(layout);
-    mLayout->addLayout(dataLt);
-
-    layout->addWidget(labelWidget);
-
-    dataLt->addWidget(valueWidget);
-    dataLt->addWidget(scaleWidget);
-
-    return frame;
 }
 
 CoolWindow::~CoolWindow() {

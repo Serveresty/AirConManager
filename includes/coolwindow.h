@@ -7,6 +7,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QGraphicsRectItem>
 #include "settings.h"
 #include "coolinputwindow.h"
 
@@ -68,9 +71,20 @@ private:
     PressureUnit currentPresUnit;
     Theme currentTheme;
 
-    QFrame *temperatureFrame;
-    QFrame *humidityFrame;
-    QFrame *pressureFrame;
+    QGraphicsScene *scene;
+    QGraphicsView *view;
+    QGraphicsRectItem *thermometer;
+    QGraphicsRectItem *humidityScale;
+    QGraphicsRectItem *pressureScale;
+    QGraphicsRectItem *mercuryLevel;
+    QGraphicsRectItem *humidityLevel;
+    QGraphicsRectItem *pressureLevel;
+    QGraphicsTextItem *temperatureText;
+    QGraphicsTextItem *humidityText;
+    QGraphicsTextItem *pressureText;
+    void setTemp();
+    void setHum();
+    void setPres();
 
     // Посмотреть что будет
     QFrame *vFrame;
@@ -98,8 +112,6 @@ private:
 
     QLabel *onOffLabel;
     bool isOn = false;
-
-    QFrame* createDataFrames(const QString& label, double* value, const QString& scale);
 
     QString getTemperatureScaleByUnitId(TemperatureUnit id);
     TemperatureUnit getTemperatureUnitByScale(QString scale);
@@ -131,9 +143,10 @@ private:
 
     double getMinTempForCurrentUnit();
     double getMaxTempForCurrentUnit();
+    double getMinPresForCurrentUnit();
+    double getMaxPresForCurrentUnit();
 
     void setHumRange();
-    void setPresRange();
 
     QString getLockStyle();
 };

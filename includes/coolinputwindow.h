@@ -18,6 +18,7 @@ public:
     void setMinMaxTempUnit(double minT, double maxT);
     void setMinMaxHumUnit(double minH, double maxH);
     void setMinMaxPresUnit(double minP, double maxP);
+    void setCurrentValues(double tmp, double hum, double pres);
 signals:
     void sendInputData(double tData, double hData, double pData);
 private:
