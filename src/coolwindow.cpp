@@ -4,28 +4,42 @@
 #include <QDomElement>
 #include <QTextStream>
 
+/**
+ * @brief Конструктор класса CoolWindow.
+ * 
+ * Загружает настройки пользователя из XML-файла, устанавливает начальные значения для параметров
+ * температуры, влажности и давления. Определяет графический интерфейс пользователя (GUI) с элементами
+ * управления, такими как кнопки включения/выключения, управление температурой, направлением воздуха,
+ * а также интерфейс для отображения графических элементов.
+ * @param parent Родительский виджет для главного окна.
+ */
 CoolWindow::CoolWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    loadSettings("user_settings.xml");
-    hGateDir = new int(0);
-    vGateDir = new int(0);
+    loadSettings("user_settings.xml"); // Загрузка настроек пользователя
+    hGateDir = new int(0); // Инициализация направления по горизонтали
+    vGateDir = new int(0); // Инициализация направления по вертикали
 
+    // Установка минимального и максимального размера окна
     this->setMinimumSize(800,600);
     this->setMaximumSize(1024, 768);
 
-    centralWidget = new QWidget(this);
-    this->setCentralWidget(centralWidget);
+    centralWidget = new QWidget(this); // Центральный виджет окна
+    this->setCentralWidget(centralWidget); // Установка центрального виджета
 
     dataLayout = new QHBoxLayout;
+
+    // Метка для индикации включения/выключения
     onOffLabel = new QLabel;
     onOffLabel->setFixedSize(10,10);
     onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
 
+    // Создание сцены и графического вида для отображения данных
     scene = new QGraphicsScene(this);
     view = new QGraphicsView(scene);
     view->setStyleSheet("border: 0px;");
 
+    // Добавление графических элементов на сцену для отображения температуры, влажности и давления
     thermometer = scene->addRect(50, 10, 30, 300);
     mercuryLevel = scene->addRect(51, 310, 28, 0, QPen(), QBrush(Qt::red));
 
@@ -35,6 +49,7 @@ CoolWindow::CoolWindow(QWidget *parent)
     pressureScale = scene->addRect(250, 10, 30, 300);
     pressureLevel = scene->addRect(251, 310, 28, 0, QPen(), QBrush(Qt::magenta));
 
+    // Отображение текстовых меток для температуры, влажности и давления
     temperatureText = scene->addText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
     temperatureText->setPos(40, 320);
     humidityText = scene->addText("В: " + QString::number(*humidity) + " %");
@@ -42,26 +57,29 @@ CoolWindow::CoolWindow(QWidget *parent)
     pressureText = scene->addText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
     pressureText->setPos(220, 320);
 
+    // Добавление виджета индикации включения/выключения и графического вида в макет
     dataLayout->addWidget(onOffLabel);
     dataLayout->addWidget(view);
 
     buttonsLayout = new QHBoxLayout;
-    onOffButton = new QPushButton("Вкл", this);
+    onOffButton = new QPushButton("Вкл", this); // Кнопка включения/выключения
     onOffButton->setMinimumHeight(50);
     onOffButton->setMaximumWidth(300);
 
+    // Вертикальный макет для управления температурой
     changeTempLayout = new QVBoxLayout;
-    tempUp = new QPushButton("+", this);
+    tempUp = new QPushButton("+", this); // Кнопка увеличения температуры
     tempUp->setMaximumSize(50,50);
-    tempUp->setEnabled(isOn);
+    tempUp->setEnabled(isOn); // Кнопка активна, если система включена
 
-    tempDown = new QPushButton("-", this);
+    tempDown = new QPushButton("-", this); // Кнопка уменьшения температуры
     tempDown->setMaximumSize(50,50);
-    tempDown->setEnabled(isOn);
+    tempDown->setEnabled(isOn); // Кнопка активна, если система включена
 
     changeTempLayout->addWidget(tempUp);
     changeTempLayout->addWidget(tempDown);
 
+    // Макеты для управления направлением воздушного потока
     verticalAirLayout = new QVBoxLayout;
     horizontalAirLayout = new QHBoxLayout;
     airUp = new QPushButton(QString::fromUtf8("\u2191"), this);
@@ -77,20 +95,24 @@ CoolWindow::CoolWindow(QWidget *parent)
     airLeft->setEnabled(isOn);
     airRight->setEnabled(isOn);
 
+    // Добавление кнопок управления воздухом в макет
     verticalAirLayout->addWidget(airUp);
     verticalAirLayout->addWidget(airDown);
     horizontalAirLayout->addWidget(airLeft);
     horizontalAirLayout->addWidget(airRight);
     
+     // Кнопка для открытия настроек
     openSettings = new QPushButton("Настройки", this);
     openSettings->setMinimumHeight(50);
     openSettings->setMaximumWidth(300);
 
+    // Кнопка для изменения входных параметров
     openInput = new QPushButton("Изменить входные параметры", this);
     openInput->setMinimumHeight(50);
     openInput->setMaximumWidth(300);
     openInput->setEnabled(isOn);
 
+    // Добавление всех кнопок в макет
     buttonsLayout->addWidget(onOffButton);
     buttonsLayout->addLayout(changeTempLayout);
     buttonsLayout->addLayout(verticalAirLayout);
@@ -102,13 +124,14 @@ CoolWindow::CoolWindow(QWidget *parent)
     mainLayout->addLayout(dataLayout);
     mainLayout->addLayout(buttonsLayout);
 
-    setTemp();
-    setHum();
-    setPres();
-    setCurrentTheme();
+    setTemp(); // Установка температуры
+    setHum(); // Установка влажности
+    setPres(); // Установка давления
+    setCurrentTheme(); // Установка текущей темы оформления
 
     centralWidget->setLayout(mainLayout);
 
+    // Соединение сигналов и слотов для обработки нажатий кнопок
     connect(onOffButton, &QPushButton::clicked, this, &CoolWindow::toggleIndicator);
     connect(openSettings, &QPushButton::clicked, this, &CoolWindow::openSettingsWindow);
     connect(openInput, &QPushButton::clicked, this, &CoolWindow::openInputWindow);
@@ -120,6 +143,9 @@ CoolWindow::CoolWindow(QWidget *parent)
     connect(airRight, &QPushButton::clicked, this, &CoolWindow::addAirRight);
 }
 
+/**
+ * @brief Устанавливает текущую тему оформления в зависимости от выбранной пользователем.
+ */
 void CoolWindow::setCurrentTheme() {
     switch (currentTheme) {
         case Theme::Light:
@@ -134,6 +160,11 @@ void CoolWindow::setCurrentTheme() {
     }
 }
 
+/**
+ * @brief Применяет темную тему оформления.
+ * 
+ * Устанавливает темный фон и белые границы для всех элементов интерфейса.
+ */
 void CoolWindow::applyDarkTheme() {
     centralWidget->setStyleSheet("background: black; color: white;");
     onOffButton->setStyleSheet("border: 1px solid white;");
@@ -159,6 +190,11 @@ void CoolWindow::applyDarkTheme() {
     currentTheme = Theme::Dark;
 }
 
+/**
+ * @brief Применяет светлую тему оформления.
+ * 
+ * Устанавливает светлый фон и черные границы для всех элементов интерфейса.
+ */
 void CoolWindow::applyLightTheme() {
     centralWidget->setStyleSheet("background: white; color: black;");
     onOffButton->setStyleSheet("border: 1px solid black;");
@@ -184,6 +220,13 @@ void CoolWindow::applyLightTheme() {
     currentTheme = Theme::Light;
 }
 
+/**
+ * @brief Принимает новые данные о температуре, влажности и давлении.
+ * 
+ * @param tData Температура.
+ * @param hData Влажность.
+ * @param pData Давление.
+ */
 void CoolWindow::acceptNewData(double tData, double hData, double pData) {
     delete temperature;
     temperature = new double(tData);
@@ -200,6 +243,9 @@ void CoolWindow::acceptNewData(double tData, double hData, double pData) {
     pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
 }
 
+/**
+ * @brief Обновляет визуальное представление уровня ртути в зависимости от температуры.
+ */
 void CoolWindow::setTemp() {
     double minT = getMinTempForCurrentUnit();
     double maxT = getMaxTempForCurrentUnit();
@@ -207,10 +253,16 @@ void CoolWindow::setTemp() {
     mercuryLevel->setRect(51, 310 - (*temperature - minT) * range, 28, (*temperature - minT) * range);
 }
 
+/**
+ * @brief Обновляет визуальное представление уровня влажности.
+ */
 void CoolWindow::setHum() {
     humidityLevel->setRect(151, 310 - *humidity * 3, 28, *humidity * 3);
 }
 
+/**
+ * @brief Обновляет визуальное представление уровня давления.
+ */
 void CoolWindow::setPres() {
     double minP = getMinPresForCurrentUnit();
     double maxP = getMaxPresForCurrentUnit();
@@ -218,6 +270,12 @@ void CoolWindow::setPres() {
     pressureLevel->setRect(251, 310 - (*pressure - minP) * range, 28, (*pressure - minP) * range);
 }
 
+/**
+ * @brief Принимает новые настройки для единиц измерения температуры и давления.
+ * 
+ * @param tempId ID новой единицы измерения температуры.
+ * @param presId ID новой единицы измерения давления.
+ */
 void CoolWindow::acceptSettings(int tempId, int presId) {
     TemperatureUnit tid = static_cast<TemperatureUnit>(tempId);
     PressureUnit pid = static_cast<PressureUnit>(presId);
@@ -236,6 +294,12 @@ void CoolWindow::acceptSettings(int tempId, int presId) {
     pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
 }
 
+/**
+ * @brief Возвращает строковое представление единицы измерения температуры по ID.
+ * 
+ * @param id ID единицы измерения температуры.
+ * @return QString Строка с обозначением единицы (C, F, K).
+ */
 QString CoolWindow::getTemperatureScaleByUnitId(TemperatureUnit id) {
     switch (id) {
         case TemperatureUnit::Celsius:
@@ -252,6 +316,12 @@ QString CoolWindow::getTemperatureScaleByUnitId(TemperatureUnit id) {
     return "Unknown";
 }
 
+/**
+ * @brief Возвращает единицу измерения температуры по строковому обозначению.
+ * 
+ * @param scale Строка с обозначением единицы измерения.
+ * @return CoolWindow::TemperatureUnit Соответствующая единица измерения температуры.
+ */
 CoolWindow::TemperatureUnit CoolWindow::getTemperatureUnitByScale(QString scale) {
     if (scale == "C") {
         return TemperatureUnit::Celsius;
@@ -264,6 +334,9 @@ CoolWindow::TemperatureUnit CoolWindow::getTemperatureUnitByScale(QString scale)
     return TemperatureUnit::Celsius;
 }
 
+/**
+ * @brief Увеличивает значение температуры.
+ */
 void CoolWindow::temperatureUp() {
     switch (currentTempUnit) {
         case TemperatureUnit::Fahrenheit:
@@ -282,6 +355,9 @@ void CoolWindow::temperatureUp() {
     temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
 }
 
+/**
+ * @brief Уменьшает значение температуры.
+ */
 void CoolWindow::temperatureDown() {
     switch (currentTempUnit) {
         case TemperatureUnit::Fahrenheit:
@@ -300,46 +376,84 @@ void CoolWindow::temperatureDown() {
     temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
 }
 
+/**
+ * @brief Увеличивает направление воздушного потока вверх.
+ */
 void CoolWindow::addAirUp() {
     if (*hGateDir + 5 <= getMaxHDir()) {
         *hGateDir = *hGateDir + 5;
     }
 }
 
+/**
+ * @brief Увеличивает направление воздушного потока вниз.
+ */
 void CoolWindow::addAirDown() {
     if (*hGateDir - 5 >= getMinHDir()) {
         *hGateDir = *hGateDir - 5;
     }
 }
 
+/**
+ * @brief Увеличивает направление воздушного потока влево.
+ */
 void CoolWindow::addAirLeft() {
     if (*vGateDir + 5 <= getMaxVDir()) {
         *vGateDir = *vGateDir + 5;
     }
 }
 
+/**
+ * @brief Уменьшает направление воздушного потока вправо.
+ */
 void CoolWindow::addAirRight() {
     if (*vGateDir - 5 >= getMinVDir()) {
         *vGateDir = *vGateDir - 5;
     }
 }
 
+/**
+ * @brief Возвращает минимальное значение направления вертикального потока воздуха.
+ * 
+ * @return int Минимальное значение направления вертикального потока воздуха.
+ */
 int CoolWindow::getMinHDir() {
     return 0;
 }
 
+/**
+ * @brief Возвращает максимальное значение направления вертикального потока воздуха.
+ * 
+ * @return int Максимальное значение направления вертикального потока воздуха.
+ */
 int CoolWindow::getMaxHDir() {
     return 90;
 }
 
+/**
+ * @brief Возвращает минимальное значение направления горизонтального потока воздуха.
+ * 
+ * @return int Минимальное значение направления горизонтального потока воздуха.
+ */
 int CoolWindow::getMinVDir() {
     return -45;
 }
 
+/**
+ * @brief Возвращает максимальное значение направления горизонтального потока воздуха.
+ * 
+ * @return int Максимальное значение направления горизонтального потока воздуха.
+ */
 int CoolWindow::getMaxVDir() {
     return 45;
 }
 
+/**
+ * @brief Возвращает строковое представление единицы измерения давления по ID.
+ * 
+ * @param id ID единицы измерения давления.
+ * @return QString Строка с обозначением единицы (Pa, mm.h.g.).
+ */
 QString CoolWindow::getPressureScaleByUnitId(PressureUnit id) {
     switch (id) {
         case PressureUnit::Pascal:
@@ -353,6 +467,12 @@ QString CoolWindow::getPressureScaleByUnitId(PressureUnit id) {
     return "Unknown";
 }
 
+/**
+ * @brief Возвращает единицу измерения давления по строковому обозначению.
+ * 
+ * @param scale Строка с обозначением единицы измерения.
+ * @return CoolWindow::PressureUnit Соответствующая единица измерения давления.
+ */
 CoolWindow::PressureUnit CoolWindow::getPressureUnitByScale(QString scale) {
     if (scale == "Pa") {
         return PressureUnit::Pascal;
@@ -363,6 +483,12 @@ CoolWindow::PressureUnit CoolWindow::getPressureUnitByScale(QString scale) {
     return PressureUnit::Pascal;
 }
 
+/**
+ * @brief Возвращает строковое представление темы по ID.
+ * 
+ * @param id ID темы.
+ * @return QString Строка с обозначением темы (Light, Dark).
+ */
 QString CoolWindow::getThemeById(Theme id) {
     switch (id) {
         case Theme::Light:
@@ -376,6 +502,12 @@ QString CoolWindow::getThemeById(Theme id) {
     return "Unknown";
 }
 
+/**
+ * @brief Возвращает тему по ее строковому обозначению.
+ * 
+ * @param theme Строка с обозначением темы.
+ * @return CoolWindow::Theme Соответствующая тема.
+ */
 CoolWindow::Theme CoolWindow::getThemeUnitByName(QString theme) {
     if (theme == "Light") {
         return Theme::Light;
@@ -385,6 +517,12 @@ CoolWindow::Theme CoolWindow::getThemeUnitByName(QString theme) {
     return Theme::Light;
 }
 
+/**
+ * @brief Пересчитывает температуру из одной единицы измерения в другую.
+ * 
+ * @param from Единица измерения, из которой необходимо пересчитать.
+ * @param to Единица измерения, в которую необходимо пересчитать.
+ */
 void CoolWindow::recalculateTemp(TemperatureUnit from, TemperatureUnit to) {
     if (from == to) {
         return;
@@ -421,6 +559,13 @@ void CoolWindow::recalculateTemp(TemperatureUnit from, TemperatureUnit to) {
         }
     }
 }
+
+/**
+ * @brief Пересчитывает давление из одной единицы измерения в другую.
+ * 
+ * @param from Единица измерения, из которой необходимо пересчитать.
+ * @param to Единица измерения, в которую необходимо пересчитать.
+ */
 void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
     if (from == to) {
         return;
@@ -439,6 +584,9 @@ void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
     }
 }
 
+/**
+ * @brief Переключает индикатор состояния устройства (включено/выключено).
+ */
 void CoolWindow::toggleIndicator() {
     isOn = !isOn;
     if (isOn) {
@@ -457,6 +605,9 @@ void CoolWindow::toggleIndicator() {
     airRight->setEnabled(isOn);
 }
 
+/**
+ * @brief Открывает окно настроек.
+ */
 void CoolWindow::openSettingsWindow() {
     if (!settingsWindow) {
         settingsWindow = new Settings(this);
@@ -480,6 +631,9 @@ void CoolWindow::openSettingsWindow() {
     settingsWindow->activateWindow();
 }
 
+/**
+ * @brief Открывает окно ввода данных.
+ */
 void CoolWindow::openInputWindow() {
     if (!inputWindow) {
         inputWindow = new CoolInput(this);
@@ -544,6 +698,11 @@ void CoolWindow::openInputWindow() {
     inputWindow->activateWindow();
 }
 
+/**
+ * @brief Возвращает стиль блокировки в зависимости от текущей темы.
+ * 
+ * @return QString Стиль блокировки в виде строки.
+ */
 QString CoolWindow::getLockStyle() {
     switch (currentTheme) {
         case Theme::Dark:
@@ -555,62 +714,89 @@ QString CoolWindow::getLockStyle() {
     }
 }
 
+/**
+ * @brief Возвращает минимально допустимую температуру для текущей единицы измерения.
+ * @return Минимальная температура в текущей единице измерения (Цельсий, Фаренгейт, Кельвин).
+ */
 double CoolWindow::getMinTempForCurrentUnit() {
     switch (currentTempUnit) {
         case TemperatureUnit::Celsius:
-            return 16.0;
+            return 16.0; // Минимальная температура в Цельсиях
         case TemperatureUnit::Fahrenheit:
-            return 60.8;
+            return 60.8; // Минимальная температура в Фаренгейтах
         case TemperatureUnit::Kelvin:
-            return 289.15;
+            return 289.15; // Минимальная температура в Кельвинах
         default:
-            return 0.0;
+            return 0.0; // Значение по умолчанию
     }
 }
 
+/**
+ * @brief Возвращает максимально допустимую температуру для текущей единицы измерения.
+ * @return Максимальная температура в текущей единице измерения (Цельсий, Фаренгейт, Кельвин).
+ */
 double CoolWindow::getMaxTempForCurrentUnit() {
     switch (currentTempUnit) {
         case TemperatureUnit::Celsius:
-            return 30.0;
+            return 30.0; // Максимальная температура в Цельсиях
         case TemperatureUnit::Fahrenheit:
-            return 86;
+            return 86; // Максимальная температура в Фаренгейтах
         case TemperatureUnit::Kelvin:
-            return 303.15;
+            return 303.15; // Максимальная температура в Кельвинах
         default:
-            return 100.0;
+            return 100.0; // Значение по умолчанию
     }
 }
 
-
+/**
+ * @brief Устанавливает диапазон влажности в окне ввода данных.
+ * 
+ * Минимальное значение влажности установлено на 0%, максимальное — на 100%.
+ */
 void CoolWindow::setHumRange() {
     double minH, maxH;
-    minH = 0.0;
-    maxH = 100.0;
-    inputWindow->setMinMaxHumUnit(minH, maxH);
+    minH = 0.0; // Минимальная влажность
+    maxH = 100.0; // Максимальная влажность
+    inputWindow->setMinMaxHumUnit(minH, maxH); // Установка диапазона влажности
 }
 
+/**
+ * @brief Возвращает минимальное давление для текущей единицы измерения.
+ * @return Минимальное давление в текущей единице измерения (Паскали или мм рт. ст.).
+ */
 double CoolWindow::getMinPresForCurrentUnit() {
     switch (currentPresUnit) {
         case PressureUnit::Pascal:
-            return 87000.0;
+            return 87000.0; // Минимальное давление в Паскалях
         case PressureUnit::Mmhg:
-            return 652.0;
+            return 652.0; // Минимальное давление в мм рт. ст.
         default:
-            return 87000.0;
+            return 87000.0; // Значение по умолчанию
     }
 }
 
+/**
+ * @brief Возвращает максимальное давление для текущей единицы измерения.
+ * @return Максимальное давление в текущей единице измерения (Паскали или мм рт. ст.).
+ */
 double CoolWindow::getMaxPresForCurrentUnit() {
     switch (currentPresUnit) {
         case PressureUnit::Pascal:
-            return 108500.0;
+            return 108500.0; // Максимальное давление в Паскалях
         case PressureUnit::Mmhg:
-            return 814.0;
+            return 814.0; // Максимальное давление в мм рт. ст.
         default:
-            return 108500.0;
+            return 108500.0; // Значение по умолчанию
     }
 }
 
+/**
+ * @brief Сохраняет текущие настройки пользователя в XML-файл.
+ * @param filePath Путь к файлу для сохранения настроек.
+ * 
+ * Сохраняет значения температуры, влажности, давления и выбранную тему интерфейса
+ * в указанный XML-файл.
+ */
 void CoolWindow::saveSettings(const QString &filePath) {
     QFile file(filePath);
 
@@ -645,6 +831,13 @@ void CoolWindow::saveSettings(const QString &filePath) {
     file.close();
 }
 
+/**
+ * @brief Загружает настройки пользователя из XML-файла.
+ * @param filePath Путь к файлу для загрузки настроек.
+ * 
+ * Загружает значения температуры, влажности, давления и темы интерфейса из указанного XML-файла.
+ * Если файл недоступен или имеет ошибку, загружаются базовые настройки.
+ */
 void CoolWindow::loadSettings(const QString &filePath) {
     QFile file(filePath);
 
@@ -678,6 +871,12 @@ void CoolWindow::loadSettings(const QString &filePath) {
     currentTheme = getThemeUnitByName(themeElem.attribute("value"));
 }
 
+/**
+ * @brief Устанавливает базовые настройки температуры, влажности, давления и темы.
+ * 
+ * Устанавливаются значения по умолчанию: температура — 16°C, давление — 87000 Паскалей,
+ * влажность — 0%, тема интерфейса — светлая.
+ */
 void CoolWindow::setBaseSettings() {
     temperature = new double(16.0);
     humidity = new double(0.0);
@@ -687,9 +886,17 @@ void CoolWindow::setBaseSettings() {
     currentTheme = Theme::Light;
 }
 
+/**
+ * @brief Деструктор класса CoolWindow.
+ * 
+ * При завершении работы сохраняет настройки в файл "user_settings.xml" и освобождает память,
+ * выделенную под значения температуры, влажности и давления.
+ */
 CoolWindow::~CoolWindow() {
     saveSettings("user_settings.xml");
     delete temperature;
     delete humidity;
     delete pressure;
+    delete hGateDir;
+    delete vGateDir;
 }
