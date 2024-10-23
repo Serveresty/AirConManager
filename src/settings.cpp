@@ -1,5 +1,3 @@
-#include "../includes/settings.h"
-
 /**
  * @file settings.cpp
  * @brief Реализация класса Settings.
@@ -8,6 +6,16 @@
  * который отвечает за создание и управление интерфейсом настроек.
  */
 
+#include "../includes/settings.h"
+
+/**
+ * @brief Конструктор класса Settings.
+ * 
+ * Создаёт экземпляр окна настроек с элементами управления для выбора 
+ * шкалы температуры, шкалы давления и темы оформления.
+ * 
+ * @param parent Указатель на родительский объект.
+ */
 Settings::Settings(QWidget *parent)
     : QDialog(parent)
 {
@@ -77,6 +85,14 @@ Settings::Settings(QWidget *parent)
     });
 }
 
+/**
+ * @brief Устанавливает активную шкалу температуры.
+ * 
+ * Выбирает радио-кнопку, соответствующую заданному идентификатору
+ * шкалы температуры.
+ * 
+ * @param id Идентификатор шкалы температуры (1 - Цельсий, 2 - Фаренгейт, 3 - Кельвин).
+ */
 void Settings::setActiveTempUnit(int id) {
     switch (id) {
         case 1:
@@ -94,6 +110,14 @@ void Settings::setActiveTempUnit(int id) {
     }
 }
 
+/**
+ * @brief Устанавливает активную шкалу давления.
+ * 
+ * Выбирает радио-кнопку, соответствующую заданному идентификатору
+ * шкалы давления.
+ * 
+ * @param id Идентификатор шкалы давления (1 - Па, 2 - мм.рт.ст.).
+ */
 void Settings::setActivePresUnit(int id) {
     switch (id) {
         case 1:
@@ -108,6 +132,11 @@ void Settings::setActivePresUnit(int id) {
     }
 }
 
+/**
+ * @brief Деструктор класса Settings.
+ * 
+ * Освобождает ресурсы, используемые экземпляром класса.
+ */
 Settings::~Settings()
 {
 }
