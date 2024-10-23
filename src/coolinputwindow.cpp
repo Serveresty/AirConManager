@@ -1,5 +1,13 @@
 #include "../includes/coolinputwindow.h"
 
+/**
+ * @file coolinputwindow.cpp
+ * @brief Реализация класса CoolInput.
+ * 
+ * Этот файл содержит реализацию методов класса CoolInput,
+ * который отвечает за создание и управление интерфейсом ввода данных.
+ */
+
 CoolInput::CoolInput(QWidget *parent)
     : QDialog(parent)
 {

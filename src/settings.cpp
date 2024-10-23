@@ -1,5 +1,13 @@
 #include "../includes/settings.h"
 
+/**
+ * @file settings.cpp
+ * @brief Реализация класса Settings.
+ * 
+ * Этот файл содержит реализацию методов класса Settings,
+ * который отвечает за создание и управление интерфейсом настроек.
+ */
+
 Settings::Settings(QWidget *parent)
     : QDialog(parent)
 {
