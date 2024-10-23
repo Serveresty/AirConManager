@@ -39,12 +39,34 @@ CoolWindow::CoolWindow(QWidget *parent)
     tempUp = new QPushButton("+", this);
     tempUp->setMaximumSize(50,50);
     tempUp->setEnabled(isOn);
+
     tempDown = new QPushButton("-", this);
     tempDown->setMaximumSize(50,50);
     tempDown->setEnabled(isOn);
+
     changeTempLayout->addWidget(tempUp);
     changeTempLayout->addWidget(tempDown);
 
+    verticalAirLayout = new QVBoxLayout;
+    horizontalAirLayout = new QHBoxLayout;
+    airUp = new QPushButton(QString::fromUtf8("\u2191"), this);
+    airDown = new QPushButton(QString::fromUtf8("\u2193"), this);
+    airLeft = new QPushButton(QString::fromUtf8("\u2190"), this);
+    airRight = new QPushButton(QString::fromUtf8("\u2192"), this);
+    airUp->setMaximumSize(50,25);
+    airDown->setMaximumSize(50,25);
+    airLeft->setMaximumSize(50,25);
+    airRight->setMaximumSize(50,25);
+    airUp->setEnabled(isOn);
+    airDown->setEnabled(isOn);
+    airLeft->setEnabled(isOn);
+    airRight->setEnabled(isOn);
+
+    verticalAirLayout->addWidget(airUp);
+    verticalAirLayout->addWidget(airDown);
+    horizontalAirLayout->addWidget(airLeft);
+    horizontalAirLayout->addWidget(airRight);
+    
     openSettings = new QPushButton("Настройки", this);
     openSettings->setMinimumHeight(50);
     openSettings->setMaximumWidth(300);
@@ -56,6 +78,8 @@ CoolWindow::CoolWindow(QWidget *parent)
 
     buttonsLayout->addWidget(onOffButton);
     buttonsLayout->addLayout(changeTempLayout);
+    buttonsLayout->addLayout(verticalAirLayout);
+    buttonsLayout->addLayout(horizontalAirLayout);
     buttonsLayout->addWidget(openSettings);
     buttonsLayout->addWidget(openInput);
 
@@ -95,6 +119,10 @@ void CoolWindow::applyDarkTheme() {
     openInput->setStyleSheet("border: 1px solid white;");
     tempUp->setStyleSheet("border: 1px solid white;");
     tempDown->setStyleSheet("border: 1px solid white;");
+    airUp->setStyleSheet("border: 1px solid white;");
+    airDown->setStyleSheet("border: 1px solid white;");
+    airLeft->setStyleSheet("border: 1px solid white;");
+    airRight->setStyleSheet("border: 1px solid white;");
 
     currentTheme = Theme::Dark;
 }
@@ -106,6 +134,10 @@ void CoolWindow::applyLightTheme() {
     openInput->setStyleSheet("border: 1px solid black;");
     tempUp->setStyleSheet("border: 1px solid black;");
     tempDown->setStyleSheet("border: 1px solid black;");
+    airUp->setStyleSheet("border: 1px solid black;");
+    airDown->setStyleSheet("border: 1px solid black;");
+    airLeft->setStyleSheet("border: 1px solid black;");
+    airRight->setStyleSheet("border: 1px solid black;");
 
     currentTheme = Theme::Light;
 }
@@ -297,13 +329,15 @@ void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
     }
     if (from == PressureUnit::Pascal) {
         if (to == PressureUnit::Mmhg) {
-            *pressure = *pressure / (9.80665 * 1000);
+            qDebug() << *pressure;
+            *pressure = *pressure / (133.3224);
+            qDebug() << *pressure;
             return;
         }
     }
     if (from == PressureUnit::Mmhg) {
         if (to == PressureUnit::Pascal) {
-            *pressure = *pressure * 9.80665 * 1000;
+            *pressure = *pressure * 133.3224;
             return;
         }
     }
@@ -321,6 +355,10 @@ void CoolWindow::toggleIndicator() {
     openInput->setEnabled(isOn);
     tempUp->setEnabled(isOn);
     tempDown->setEnabled(isOn);
+    airUp->setEnabled(isOn);
+    airDown->setEnabled(isOn);
+    airLeft->setEnabled(isOn);
+    airRight->setEnabled(isOn);
 }
 
 void CoolWindow::openSettingsWindow() {
@@ -354,27 +392,47 @@ void CoolWindow::openInputWindow() {
         QString origStOpSet = openSettings->styleSheet();
         QString origStTempUp = openSettings->styleSheet();
         QString origStTempDown = openSettings->styleSheet();
+        QString u = airUp->styleSheet();
+        QString d = airDown->styleSheet();
+        QString l = airLeft->styleSheet();
+        QString r = airRight->styleSheet();
         onOffButton->setEnabled(false);
         openSettings->setEnabled(false);
         tempUp->setEnabled(false);
         tempDown->setEnabled(false);
+        airUp->setEnabled(false);
+        airDown->setEnabled(false);
+        airLeft->setEnabled(false);
+        airRight->setEnabled(false);
 
         QString lockStyle = getLockStyle();
         onOffButton->setStyleSheet(lockStyle);
         openSettings->setStyleSheet(lockStyle);
         tempUp->setStyleSheet(lockStyle);
         tempDown->setStyleSheet(lockStyle);
+        airUp->setStyleSheet(lockStyle);
+        airDown->setStyleSheet(lockStyle);
+        airLeft->setStyleSheet(lockStyle);
+        airRight->setStyleSheet(lockStyle);
         connect(inputWindow, &QDialog::finished, this, [=]() {
             inputWindow = nullptr;
             onOffButton->setEnabled(true);
             openSettings->setEnabled(true);
             tempUp->setEnabled(true);
             tempDown->setEnabled(true);
+            airUp->setEnabled(true);
+            airDown->setEnabled(true);
+            airLeft->setEnabled(true);
+            airRight->setEnabled(true);
 
             onOffButton->setStyleSheet(origStOnOff);
             openSettings->setStyleSheet(origStOpSet);
             tempUp->setStyleSheet(origStTempUp);
             tempDown->setStyleSheet(origStTempDown);
+            airUp->setStyleSheet(u);
+            airDown->setStyleSheet(d);
+            airLeft->setStyleSheet(l);
+            airRight->setStyleSheet(r);
         });
 
         connect(inputWindow, &CoolInput::sendInputData, this, &CoolWindow::acceptNewData);

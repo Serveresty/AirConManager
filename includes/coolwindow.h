@@ -76,9 +76,17 @@ private:
     QVBoxLayout *changeTempLayout;
     QPushButton *tempUp;
     QPushButton *tempDown;
+    
+    QVBoxLayout *verticalAirLayout;
+    QHBoxLayout *horizontalAirLayout;
+    QPushButton *airUp;
+    QPushButton *airDown;
+    QPushButton *airRight;
+    QPushButton *airLeft;
 
     QPushButton *openSettings;
     QPushButton *openInput;
+
     Settings *settingsWindow = nullptr;
     CoolInput *inputWindow = nullptr;
 
