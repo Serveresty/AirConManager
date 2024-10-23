@@ -35,6 +35,16 @@ CoolWindow::CoolWindow(QWidget *parent)
     onOffButton->setMinimumHeight(50);
     onOffButton->setMaximumWidth(300);
 
+    changeTempLayout = new QVBoxLayout;
+    tempUp = new QPushButton("+", this);
+    tempUp->setMaximumSize(50,50);
+    tempUp->setEnabled(isOn);
+    tempDown = new QPushButton("-", this);
+    tempDown->setMaximumSize(50,50);
+    tempDown->setEnabled(isOn);
+    changeTempLayout->addWidget(tempUp);
+    changeTempLayout->addWidget(tempDown);
+
     openSettings = new QPushButton("Настройки", this);
     openSettings->setMinimumHeight(50);
     openSettings->setMaximumWidth(300);
@@ -45,6 +55,7 @@ CoolWindow::CoolWindow(QWidget *parent)
     openInput->setEnabled(isOn);
 
     buttonsLayout->addWidget(onOffButton);
+    buttonsLayout->addLayout(changeTempLayout);
     buttonsLayout->addWidget(openSettings);
     buttonsLayout->addWidget(openInput);
 
@@ -59,6 +70,8 @@ CoolWindow::CoolWindow(QWidget *parent)
     connect(onOffButton, &QPushButton::clicked, this, &CoolWindow::toggleIndicator);
     connect(openSettings, &QPushButton::clicked, this, &CoolWindow::openSettingsWindow);
     connect(openInput, &QPushButton::clicked, this, &CoolWindow::openInputWindow);
+    connect(tempUp, &QPushButton::clicked, this, &CoolWindow::temperatureUp);
+    connect(tempDown, &QPushButton::clicked, this, &CoolWindow::temperatureDown);
 }
 
 void CoolWindow::setCurrentTheme() {
@@ -80,6 +93,8 @@ void CoolWindow::applyDarkTheme() {
     onOffButton->setStyleSheet("border: 1px solid white;");
     openSettings->setStyleSheet("border: 1px solid white;");
     openInput->setStyleSheet("border: 1px solid white;");
+    tempUp->setStyleSheet("border: 1px solid white;");
+    tempDown->setStyleSheet("border: 1px solid white;");
 
     currentTheme = Theme::Dark;
 }
@@ -89,6 +104,8 @@ void CoolWindow::applyLightTheme() {
     onOffButton->setStyleSheet("border: 1px solid black;");
     openSettings->setStyleSheet("border: 1px solid black;");
     openInput->setStyleSheet("border: 1px solid black;");
+    tempUp->setStyleSheet("border: 1px solid black;");
+    tempDown->setStyleSheet("border: 1px solid black;");
 
     currentTheme = Theme::Light;
 }
@@ -157,6 +174,42 @@ CoolWindow::TemperatureUnit CoolWindow::getTemperatureUnitByScale(QString scale)
     return TemperatureUnit::Celsius;
 }
 
+void CoolWindow::temperatureUp() {
+    switch (currentTempUnit) {
+        case TemperatureUnit::Fahrenheit:
+            if (*temperature + 1.8 <= getMaxTempForCurrentUnit()) {
+                *temperature = *temperature + 1.8;
+            }
+            break;
+        default:
+            if (*temperature + 1 <= getMaxTempForCurrentUnit()) {
+                *temperature = *temperature + 1;
+            }
+            break;
+    }
+
+    QString newT = QString::number(*temperature);
+    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
+}
+
+void CoolWindow::temperatureDown() {
+    switch (currentTempUnit) {
+        case TemperatureUnit::Fahrenheit:
+            if (*temperature - 1.8 >= getMinTempForCurrentUnit()) {
+                *temperature = *temperature - 1.8;
+            }
+            break;
+        default:
+            if (*temperature - 1 >= getMinTempForCurrentUnit()) {
+                *temperature = *temperature - 1;
+            }
+            break;
+    }
+
+    QString newT = QString::number(*temperature);
+    temperatureFrame->findChild<QLabel*>("valueWidget")->setText(newT);
+}
+
 QString CoolWindow::getPressureScaleByUnitId(PressureUnit id) {
     switch (id) {
         case PressureUnit::Pascal:
@@ -209,7 +262,7 @@ void CoolWindow::recalculateTemp(TemperatureUnit from, TemperatureUnit to) {
 
     if (from == TemperatureUnit::Celsius) {
         if (to == TemperatureUnit::Fahrenheit) {
-            *temperature = *temperature * (9/5) + 32;
+            *temperature = *temperature * (9.0/5.0) + 32;
             return;
         }
         if (to == TemperatureUnit::Kelvin) {
@@ -219,11 +272,11 @@ void CoolWindow::recalculateTemp(TemperatureUnit from, TemperatureUnit to) {
     }
     if (from == TemperatureUnit::Fahrenheit) {
         if (to == TemperatureUnit::Celsius) {
-            *temperature = (*temperature - 32) * (5/9);
+            *temperature = (*temperature - 32) * (5.0/9.0);
             return;
         }
         if (to == TemperatureUnit::Kelvin) {
-            *temperature = (*temperature - 32) * (5/9) + 273.15;
+            *temperature = (*temperature - 32) * (5.0/9.0) + 273.15;
             return;
         }
     }
@@ -233,7 +286,7 @@ void CoolWindow::recalculateTemp(TemperatureUnit from, TemperatureUnit to) {
             return;
         }
         if (to == TemperatureUnit::Fahrenheit) {
-            *temperature = (*temperature - 273.15) * (9/5) + 32;
+            *temperature = (*temperature - 273.15) * (9.0/5.0) + 32;
             return;
         }
     }
@@ -266,6 +319,8 @@ void CoolWindow::toggleIndicator() {
         onOffButton->setText("Вкл");
     }
     openInput->setEnabled(isOn);
+    tempUp->setEnabled(isOn);
+    tempDown->setEnabled(isOn);
 }
 
 void CoolWindow::openSettingsWindow() {
@@ -297,24 +352,34 @@ void CoolWindow::openInputWindow() {
 
         QString origStOnOff = onOffButton->styleSheet();
         QString origStOpSet = openSettings->styleSheet();
+        QString origStTempUp = openSettings->styleSheet();
+        QString origStTempDown = openSettings->styleSheet();
         onOffButton->setEnabled(false);
         openSettings->setEnabled(false);
+        tempUp->setEnabled(false);
+        tempDown->setEnabled(false);
 
         QString lockStyle = getLockStyle();
         onOffButton->setStyleSheet(lockStyle);
         openSettings->setStyleSheet(lockStyle);
+        tempUp->setStyleSheet(lockStyle);
+        tempDown->setStyleSheet(lockStyle);
         connect(inputWindow, &QDialog::finished, this, [=]() {
             inputWindow = nullptr;
             onOffButton->setEnabled(true);
             openSettings->setEnabled(true);
+            tempUp->setEnabled(true);
+            tempDown->setEnabled(true);
 
             onOffButton->setStyleSheet(origStOnOff);
             openSettings->setStyleSheet(origStOpSet);
+            tempUp->setStyleSheet(origStTempUp);
+            tempDown->setStyleSheet(origStTempDown);
         });
 
         connect(inputWindow, &CoolInput::sendInputData, this, &CoolWindow::acceptNewData);
 
-        setTempRange();
+        inputWindow->setMinMaxTempUnit(getMinTempForCurrentUnit(), getMaxTempForCurrentUnit());
         setHumRange();
         setPresRange();
     }
@@ -335,30 +400,32 @@ QString CoolWindow::getLockStyle() {
     }
 }
 
-void CoolWindow::setTempRange() {
-    double minT, maxT;
-
+double CoolWindow::getMinTempForCurrentUnit() {
     switch (currentTempUnit) {
         case TemperatureUnit::Celsius:
-            minT = 16.0;
-            maxT = 30.0;
-            break;
+            return 16.0;
         case TemperatureUnit::Fahrenheit:
-            minT = 60.8;
-            maxT = 86;
-            break;
+            return 60.8;
         case TemperatureUnit::Kelvin:
-            minT = 289.15;
-            maxT = 303.15;
-            break;
+            return 289.15;
         default:
-            minT = 0.0;
-            maxT = 100.0;
-            break;
+            return 0.0;
     }
-
-    inputWindow->setMinMaxTempUnit(minT, maxT);
 }
+
+double CoolWindow::getMaxTempForCurrentUnit() {
+    switch (currentTempUnit) {
+        case TemperatureUnit::Celsius:
+            return 30.0;
+        case TemperatureUnit::Fahrenheit:
+            return 86;
+        case TemperatureUnit::Kelvin:
+            return 303.15;
+        default:
+            return 100.0;
+    }
+}
+
 
 void CoolWindow::setHumRange() {
     double minH, maxH;

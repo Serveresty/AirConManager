@@ -72,6 +72,11 @@ private:
 
     QHBoxLayout *buttonsLayout;
     QPushButton *onOffButton;
+
+    QVBoxLayout *changeTempLayout;
+    QPushButton *tempUp;
+    QPushButton *tempDown;
+
     QPushButton *openSettings;
     QPushButton *openInput;
     Settings *settingsWindow = nullptr;
@@ -84,6 +89,8 @@ private:
 
     QString getTemperatureScaleByUnitId(TemperatureUnit id);
     TemperatureUnit getTemperatureUnitByScale(QString scale);
+    void temperatureUp();
+    void temperatureDown();
 
     PressureUnit getPressureUnitByScale(QString scale);
     QString getPressureScaleByUnitId(PressureUnit id);
@@ -98,7 +105,10 @@ private:
     void saveSettings(const QString &filePath);
     void loadSettings(const QString &filePath);
     void setBaseSettings();
-    void setTempRange();
+
+    double getMinTempForCurrentUnit();
+    double getMaxTempForCurrentUnit();
+
     void setHumRange();
     void setPresRange();
 
