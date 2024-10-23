@@ -86,10 +86,6 @@ private:
     void setHum();
     void setPres();
 
-    // Посмотреть что будет
-    QFrame *vFrame;
-    QFrame *hFrame;
-
     QHBoxLayout *buttonsLayout;
     QPushButton *onOffButton;
 
