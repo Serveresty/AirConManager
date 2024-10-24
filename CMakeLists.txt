@@ -10,8 +10,6 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/mingw81_64")
-
 # Найти необходимые пакеты Qt5
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt5 REQUIRED COMPONENTS Core)
@@ -30,7 +28,7 @@ set(SOURCES
 )
 
 # Создаем исполняемый файл
-add_executable(AirConManager WIN32 ${SOURCES})
+add_executable(AirConManager ${SOURCES})
 
 # Линкуем с библиотеками Qt
 target_link_libraries(AirConManager Qt5::Widgets Qt5::Core Qt5::Xml Qt5::Gui)
