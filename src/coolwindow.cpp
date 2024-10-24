@@ -3,6 +3,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QTextStream>
+#include <QDebug>
 
 /**
  * @file coolwindow.cpp
@@ -135,6 +136,14 @@ CoolWindow::CoolWindow(QWidget *parent)
     setHum(); // Установка влажности
     setPres(); // Установка давления
     setCurrentTheme(); // Установка текущей темы оформления
+    openSettings->setStyleSheet(getLockStyle());
+    openInput->setStyleSheet(getLockStyle());
+    tempUp->setStyleSheet(getLockStyle());
+    tempDown->setStyleSheet(getLockStyle());
+    airUp->setStyleSheet(getLockStyle());
+    airDown->setStyleSheet(getLockStyle());
+    airLeft->setStyleSheet(getLockStyle());
+    airRight->setStyleSheet(getLockStyle());
 
     centralWidget->setLayout(mainLayout);
 
@@ -606,9 +615,20 @@ void CoolWindow::toggleIndicator() {
     if (isOn) {
         onOffLabel->setStyleSheet("border-radius: 5px; background-color:green;");
         onOffButton->setText("Выкл");
+
+        setCurrentTheme();
     } else {
         onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
         onOffButton->setText("Вкл");
+
+        openSettings->setStyleSheet(getLockStyle());
+        openInput->setStyleSheet(getLockStyle());
+        tempUp->setStyleSheet(getLockStyle());
+        tempDown->setStyleSheet(getLockStyle());
+        airUp->setStyleSheet(getLockStyle());
+        airDown->setStyleSheet(getLockStyle());
+        airLeft->setStyleSheet(getLockStyle());
+        airRight->setStyleSheet(getLockStyle());
     }
     openInput->setEnabled(isOn);
     tempUp->setEnabled(isOn);
@@ -652,16 +672,7 @@ void CoolWindow::openInputWindow() {
     if (!inputWindow) {
         inputWindow = new CoolInput(this);
 
-        QString origStOnOff = onOffButton->styleSheet();
-        QString origStOpSet = openSettings->styleSheet();
-        QString origStTempUp = openSettings->styleSheet();
-        QString origStTempDown = openSettings->styleSheet();
-        QString u = airUp->styleSheet();
-        QString d = airDown->styleSheet();
-        QString l = airLeft->styleSheet();
-        QString r = airRight->styleSheet();
         onOffButton->setEnabled(false);
-        openSettings->setEnabled(false);
         tempUp->setEnabled(false);
         tempDown->setEnabled(false);
         airUp->setEnabled(false);
@@ -671,7 +682,6 @@ void CoolWindow::openInputWindow() {
 
         QString lockStyle = getLockStyle();
         onOffButton->setStyleSheet(lockStyle);
-        openSettings->setStyleSheet(lockStyle);
         tempUp->setStyleSheet(lockStyle);
         tempDown->setStyleSheet(lockStyle);
         airUp->setStyleSheet(lockStyle);
@@ -681,7 +691,6 @@ void CoolWindow::openInputWindow() {
         connect(inputWindow, &QDialog::finished, this, [=]() {
             inputWindow = nullptr;
             onOffButton->setEnabled(true);
-            openSettings->setEnabled(true);
             tempUp->setEnabled(true);
             tempDown->setEnabled(true);
             airUp->setEnabled(true);
@@ -689,14 +698,7 @@ void CoolWindow::openInputWindow() {
             airLeft->setEnabled(true);
             airRight->setEnabled(true);
 
-            onOffButton->setStyleSheet(origStOnOff);
-            openSettings->setStyleSheet(origStOpSet);
-            tempUp->setStyleSheet(origStTempUp);
-            tempDown->setStyleSheet(origStTempDown);
-            airUp->setStyleSheet(u);
-            airDown->setStyleSheet(d);
-            airLeft->setStyleSheet(l);
-            airRight->setStyleSheet(r);
+            setCurrentTheme();
         });
 
         connect(inputWindow, &CoolInput::sendInputData, this, &CoolWindow::acceptNewData);
