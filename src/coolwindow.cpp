@@ -299,6 +299,13 @@ void CoolWindow::acceptSettings(int tempId, int presId) {
     temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
     humidityText->setPlainText("В: " + QString::number(*humidity) + " %");
     pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
+
+    if (inputWindow) {
+        inputWindow->setMinMaxTempUnit(getMinTempForCurrentUnit(), getMaxTempForCurrentUnit());
+        setHumRange();
+        inputWindow->setMinMaxPresUnit(getMinPresForCurrentUnit(), getMaxPresForCurrentUnit());
+        inputWindow->setCurrentValues(*temperature, *humidity, *pressure);
+    }
 }
 
 /**
