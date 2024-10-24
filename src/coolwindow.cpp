@@ -304,7 +304,7 @@ void CoolWindow::acceptSettings(int tempId, int presId) {
         inputWindow->setMinMaxTempUnit(getMinTempForCurrentUnit(), getMaxTempForCurrentUnit());
         setHumRange();
         inputWindow->setMinMaxPresUnit(getMinPresForCurrentUnit(), getMaxPresForCurrentUnit());
-        inputWindow->setCurrentValues(*temperature, *humidity, *pressure);
+        inputWindow->setCurrentValues(*temperature, getTemperatureScaleByUnitId(currentTempUnit), *humidity, *pressure, getPressureScaleByUnitId(currentPresUnit));
     }
 }
 
@@ -704,7 +704,7 @@ void CoolWindow::openInputWindow() {
         inputWindow->setMinMaxTempUnit(getMinTempForCurrentUnit(), getMaxTempForCurrentUnit());
         setHumRange();
         inputWindow->setMinMaxPresUnit(getMinPresForCurrentUnit(), getMaxPresForCurrentUnit());
-        inputWindow->setCurrentValues(*temperature, *humidity, *pressure);
+        inputWindow->setCurrentValues(*temperature, getTemperatureScaleByUnitId(currentTempUnit), *humidity, *pressure, getPressureScaleByUnitId(currentPresUnit));
     }
     
     inputWindow->show();

@@ -76,7 +76,7 @@ public:
      * @param hum Значение влажности.
      * @param pres Значение давления.
      */
-    void setCurrentValues(double tmp, double hum, double pres);
+    void setCurrentValues(double tmp, QString tS, double hum, double pres, QString pS);
 
 signals:
     /**

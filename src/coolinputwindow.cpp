@@ -28,7 +28,7 @@ CoolInput::CoolInput(QWidget *parent)
     confirmLayout = new QHBoxLayout; ///< Компоновка для размещения кнопки подтверждения.
 
     tempLabel = new QLabel("Температура: ", this); ///< Метка для отображения текста "Температура".
-    humLabel = new QLabel("Влажность: ", this); ///< Метка для отображения текста "Влажность".
+    humLabel = new QLabel("Влажность (%): ", this); ///< Метка для отображения текста "Влажность".
     presLabel = new QLabel("Давление: ", this); ///< Метка для отображения текста "Давление".
 
     tempDSpinBox = new QDoubleSpinBox; ///< Поле для ввода температуры.
@@ -104,10 +104,12 @@ void CoolInput::setMinMaxPresUnit(double minP, double maxP) {
  * @param hum Значение влажности.
  * @param pres Значение давления.
  */
-void CoolInput::setCurrentValues(double tmp, double hum, double pres) {
+void CoolInput::setCurrentValues(double tmp, QString tS, double hum, double pres, QString pS) {
     tempDSpinBox->setValue(tmp);
+    tempLabel->setText("Температура (" + tS + "):");
     humDSpinBox->setValue(hum);
     presDSpinBox->setValue(pres);
+    presLabel->setText("Давление (" + pS + "):");
 }
 
 /**
