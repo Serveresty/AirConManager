@@ -4,6 +4,7 @@
 #include <QDomElement>
 #include <QTextStream>
 #include <QDebug>
+#include <QtMath>
 
 /**
  * @file coolwindow.cpp
@@ -56,6 +57,38 @@ CoolWindow::CoolWindow(QWidget *parent)
 
     pressureScale = scene->addRect(250, 10, 30, 300);
     pressureLevel = scene->addRect(251, 310, 28, 0, QPen(), QBrush(Qt::magenta));
+
+    // Создаем стрелку, указывающую текущее вертикальное направление
+    hArrow = scene->addLine(0, 0, 0, -90, QPen(Qt::red, 3));
+    hStaticArrow = scene->addLine(0, 0, 0, -90, QPen(Qt::gray, 3));
+    hStaticArrow->setLine(450, 10, 450, 100);
+    hStaticArrow2 = scene->addLine(0, 0, -90, 0, QPen(Qt::gray, 3));
+    hStaticArrow2->setLine(450, 10, 360, 10);
+
+    hAngleArc = new QGraphicsPathItem();
+    hAngleArc->setPen(QPen(Qt::blue, 2));
+    scene->addItem(hAngleArc);
+
+    hArrow->setZValue(1);
+
+    updateHArrow();
+
+    hAirText = scene->addText("Вертикальное направление воздуха");
+    hAirText->setPos(310, 125);
+
+    // Создаем стрелку, указывающую текущее горизонтальное направление
+    vArrow = scene->addLine(0, 0, 0, -90, QPen(Qt::red, 3));
+    vStaticArrow = scene->addLine(0, 0, 0, -90, QPen(Qt::gray, 3));
+    vStaticArrow->setLine(405, 195, 360, 240);
+    vStaticArrow2 = scene->addLine(0, 0, -90, 0, QPen(Qt::gray, 3));
+    vStaticArrow2->setLine(405, 195, 450, 240);
+
+    vArrow->setZValue(1);
+
+    updateVArrow();
+
+    vAirText = scene->addText("Горизонтальное направление воздуха");
+    vAirText->setPos(310, 260);
 
     // Отображение текстовых меток для температуры, влажности и давления
     temperatureText = scene->addText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
@@ -113,6 +146,7 @@ CoolWindow::CoolWindow(QWidget *parent)
     openSettings = new QPushButton("Настройки", this);
     openSettings->setMinimumHeight(50);
     openSettings->setMaximumWidth(300);
+    openSettings->setEnabled(isOn);
 
     // Кнопка для изменения входных параметров
     openInput = new QPushButton("Изменить входные параметры", this);
@@ -195,6 +229,8 @@ void CoolWindow::applyDarkTheme() {
     temperatureText->setDefaultTextColor(Qt::white);
     humidityText->setDefaultTextColor(Qt::white);
     pressureText->setDefaultTextColor(Qt::white);
+    hAirText->setDefaultTextColor(Qt::white);
+    vAirText->setDefaultTextColor(Qt::white);
 
     QPen pen;
     pen.setColor(Qt::white);
@@ -202,6 +238,10 @@ void CoolWindow::applyDarkTheme() {
     thermometer->setPen(pen);
     humidityScale->setPen(pen);
     pressureScale->setPen(pen);
+
+    mercuryLevel->setPen(pen);
+    humidityLevel->setPen(pen);
+    pressureLevel->setPen(pen);
 
     currentTheme = Theme::Dark;
 }
@@ -225,6 +265,8 @@ void CoolWindow::applyLightTheme() {
     temperatureText->setDefaultTextColor(Qt::black);
     humidityText->setDefaultTextColor(Qt::black);
     pressureText->setDefaultTextColor(Qt::black);
+    hAirText->setDefaultTextColor(Qt::black);
+    vAirText->setDefaultTextColor(Qt::black);
 
     QPen pen;
     pen.setColor(Qt::black);
@@ -232,6 +274,10 @@ void CoolWindow::applyLightTheme() {
     thermometer->setPen(pen);
     humidityScale->setPen(pen);
     pressureScale->setPen(pen);
+
+    mercuryLevel->setPen(pen);
+    humidityLevel->setPen(pen);
+    pressureLevel->setPen(pen);
 
     currentTheme = Theme::Light;
 }
@@ -405,6 +451,7 @@ void CoolWindow::temperatureDown() {
 void CoolWindow::addAirUp() {
     if (*hGateDir + 5 <= getMaxHDir()) {
         *hGateDir = *hGateDir + 5;
+        updateHArrow();
     }
 }
 
@@ -414,6 +461,7 @@ void CoolWindow::addAirUp() {
 void CoolWindow::addAirDown() {
     if (*hGateDir - 5 >= getMinHDir()) {
         *hGateDir = *hGateDir - 5;
+        updateHArrow();
     }
 }
 
@@ -423,6 +471,7 @@ void CoolWindow::addAirDown() {
 void CoolWindow::addAirLeft() {
     if (*vGateDir + 5 <= getMaxVDir()) {
         *vGateDir = *vGateDir + 5;
+        updateVArrow();
     }
 }
 
@@ -432,6 +481,7 @@ void CoolWindow::addAirLeft() {
 void CoolWindow::addAirRight() {
     if (*vGateDir - 5 >= getMinVDir()) {
         *vGateDir = *vGateDir - 5;
+        updateVArrow();
     }
 }
 
@@ -637,6 +687,7 @@ void CoolWindow::toggleIndicator() {
     airDown->setEnabled(isOn);
     airLeft->setEnabled(isOn);
     airRight->setEnabled(isOn);
+    openSettings->setEnabled(isOn);
 }
 
 /**
@@ -900,6 +951,38 @@ void CoolWindow::setBaseSettings() {
     currentTempUnit = TemperatureUnit::Celsius;
     currentPresUnit = PressureUnit::Pascal;
     currentTheme = Theme::Light;
+}
+
+/**
+ * @brief Изменяет положение горизонтальных жалюзи и отображает вертикальное направление воздуха.
+ */
+void CoolWindow::updateHArrow() {
+    double radians = qDegreesToRadians(static_cast<double>(*hGateDir+90));
+    int x = static_cast<int>(90 * qCos(radians));
+    int y = static_cast<int>(90 * qSin(radians));
+
+    hArrow->setLine(450, 10, x+450, y+10);
+
+    QPainterPath path;
+    path.moveTo(450, 100);
+
+    double endAngle = *hGateDir;
+
+    QRectF arcRect(360, -80, 180, 180);
+    path.arcTo(arcRect, -90, -endAngle);
+
+    hAngleArc->setPath(path);
+}
+
+/**
+ * @brief Изменяет положение вертикальных жалюзи и отображает горизонтальное направление воздуха.
+ */
+void CoolWindow::updateVArrow() {
+    double radians = qDegreesToRadians(static_cast<double>(*vGateDir+90));
+    int x = static_cast<int>(55 * qCos(radians));
+    int y = static_cast<int>(55 * qSin(radians));
+
+    vArrow->setLine(405, 195, x+405, y+195);
 }
 
 /**

@@ -60,6 +60,8 @@ CoolInput::CoolInput(QWidget *parent)
         double hData = humDSpinBox->value(); ///< Получение значения влажности.
         double pData = presDSpinBox->value(); ///< Получение значения давления.
         emit sendInputData(tData, hData, pData); ///< Отправка введённых данных через сигнал.
+
+        accept();
     });
 }
 

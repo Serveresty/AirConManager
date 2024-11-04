@@ -134,6 +134,17 @@ private:
     QGraphicsTextItem *temperatureText;
     QGraphicsTextItem *humidityText;
     QGraphicsTextItem *pressureText;
+
+    QGraphicsLineItem *hArrow; ///< Горизонтальное направление воздушного потока визуализация
+    QGraphicsLineItem *hStaticArrow; ///< Горизонтальное направление воздушного потока визуализация
+    QGraphicsLineItem *hStaticArrow2; ///< Горизонтальное направление воздушного потока визуализация
+    QGraphicsPathItem *hAngleArc; ///< Горизонтальное направление воздушного потока угол
+    QGraphicsLineItem *vArrow; ///< Вертикальное направление воздушного потока визуализация
+    QGraphicsLineItem *vStaticArrow; ///< Вертикальное направление воздушного потока визуализация
+    QGraphicsLineItem *vStaticArrow2; ///< Вертикальное направление воздушного потока визуализация
+    QGraphicsTextItem *hAirText;
+    QGraphicsTextItem *vAirText;
+
     void setTemp();
     void setHum();
     void setPres();
@@ -195,6 +206,9 @@ private:
     double getMaxPresForCurrentUnit();
 
     void setHumRange();
+
+    void updateHArrow();
+    void updateVArrow();
 
     QString getLockStyle();
 };
