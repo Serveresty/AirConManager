@@ -53,10 +53,12 @@ CoolWindow::CoolWindow(QWidget *parent)
     mercuryLevel = scene->addRect(51, 310, 28, 0, QPen(), QBrush(Qt::red));
 
     humidityScale = scene->addRect(150, 10, 30, 300);
-    humidityLevel = scene->addRect(151, 310, 28, 0, QPen(), QBrush(Qt::blue));
+    QColor customBlueColor("#8AC8FF");
+    QBrush humBrush(customBlueColor);
+    humidityLevel = scene->addRect(151, 310, 28, 0, QPen(), humBrush);
 
     pressureScale = scene->addRect(250, 10, 30, 300);
-    pressureLevel = scene->addRect(251, 310, 28, 0, QPen(), QBrush(Qt::magenta));
+    pressureLevel = scene->addRect(251, 310, 28, 0, QPen(), QBrush(Qt::gray));
 
     // Создаем стрелку, указывающую текущее вертикальное направление
     hArrow = scene->addLine(0, 0, 0, -90, QPen(Qt::red, 3));
