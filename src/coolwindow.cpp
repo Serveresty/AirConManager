@@ -788,11 +788,11 @@ QString CoolWindow::getLockStyle() {
 double CoolWindow::getMinTempForCurrentUnit() {
     switch (currentTempUnit) {
         case TemperatureUnit::Celsius:
-            return 16.0; // Минимальная температура в Цельсиях
+            return -10; // Минимальная температура в Цельсиях
         case TemperatureUnit::Fahrenheit:
-            return 60.8; // Минимальная температура в Фаренгейтах
+            return 14; // Минимальная температура в Фаренгейтах
         case TemperatureUnit::Kelvin:
-            return 289.15; // Минимальная температура в Кельвинах
+            return 263.15; // Минимальная температура в Кельвинах
         default:
             return 0.0; // Значение по умолчанию
     }
