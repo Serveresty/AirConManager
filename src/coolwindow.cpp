@@ -850,7 +850,7 @@ double CoolWindow::getMaxTempForCurrentUnit() {
         case TemperatureUnit::Kelvin:
             return 303.15; // Максимальная температура в Кельвинах
         default:
-            return 100.0; // Значение по умолчанию
+            return 30.0; // Значение по умолчанию
     }
 }
 
