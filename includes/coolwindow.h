@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
+#include <QMovie>
 #include "settings.h"
 #include "coolinputwindow.h"
 
@@ -156,8 +157,8 @@ private:
     QPushButton *tempUp;
     QPushButton *tempDown;
     
-    QVBoxLayout *verticalAirLayout;
-    QHBoxLayout *horizontalAirLayout;
+    QLabel *airBttnsLabel;
+    QGridLayout *airLayout;
     QPushButton *airUp;
     QPushButton *airDown;
     QPushButton *airRight;
@@ -170,12 +171,15 @@ private:
     CoolInput *inputWindow = nullptr;
 
     QLabel *onOffLabel;
+    QMovie *airBlades;
     bool isOn = false;
 
     QString getTemperatureScaleByUnitId(TemperatureUnit id);
     TemperatureUnit getTemperatureUnitByScale(QString scale);
     void temperatureUp();
     void temperatureDown();
+
+    void offSystem();
 
     PressureUnit getPressureUnitByScale(QString scale);
     QString getPressureScaleByUnitId(PressureUnit id);

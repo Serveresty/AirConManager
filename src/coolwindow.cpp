@@ -40,8 +40,13 @@ CoolWindow::CoolWindow(QWidget *parent)
 
     // Метка для индикации включения/выключения
     onOffLabel = new QLabel;
-    onOffLabel->setFixedSize(10,10);
-    onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
+
+    airBlades = new QMovie("../../resourses/fan.gif");
+    onOffLabel->setMovie(airBlades);
+    onOffLabel->setFixedSize(100, 100);  // Пример размера 100x100 пикселей
+    onOffLabel->setScaledContents(true);
+    airBlades->start();
+    airBlades->stop();
 
     // Создание сцены и графического вида для отображения данных
     scene = new QGraphicsScene(this);
@@ -93,11 +98,11 @@ CoolWindow::CoolWindow(QWidget *parent)
     vAirText->setPos(310, 260);
 
     // Отображение текстовых меток для температуры, влажности и давления
-    temperatureText = scene->addText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
+    temperatureText = scene->addText("Т: ");
     temperatureText->setPos(40, 320);
-    humidityText = scene->addText("В: " + QString::number(*humidity) + " %");
+    humidityText = scene->addText("В: ");
     humidityText->setPos(150, 320);
-    pressureText = scene->addText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
+    pressureText = scene->addText("Д: ");
     pressureText->setPos(220, 320);
 
     // Добавление виджета индикации включения/выключения и графического вида в макет
@@ -112,37 +117,45 @@ CoolWindow::CoolWindow(QWidget *parent)
     // Вертикальный макет для управления температурой
     changeTempLayout = new QVBoxLayout;
     tempUp = new QPushButton("+", this); // Кнопка увеличения температуры
-    tempUp->setMaximumSize(50,50);
+    tempUp->setMaximumSize(35,35);
     tempUp->setEnabled(isOn); // Кнопка активна, если система включена
 
     tempDown = new QPushButton("-", this); // Кнопка уменьшения температуры
-    tempDown->setMaximumSize(50,50);
+    tempDown->setMaximumSize(35,35);
     tempDown->setEnabled(isOn); // Кнопка активна, если система включена
 
     changeTempLayout->addWidget(tempUp);
     changeTempLayout->addWidget(tempDown);
 
     // Макеты для управления направлением воздушного потока
-    verticalAirLayout = new QVBoxLayout;
-    horizontalAirLayout = new QHBoxLayout;
+    airLayout = new QGridLayout;
     airUp = new QPushButton(QString::fromUtf8("\u2191"), this);
     airDown = new QPushButton(QString::fromUtf8("\u2193"), this);
     airLeft = new QPushButton(QString::fromUtf8("\u2190"), this);
     airRight = new QPushButton(QString::fromUtf8("\u2192"), this);
-    airUp->setMaximumSize(50,25);
-    airDown->setMaximumSize(50,25);
-    airLeft->setMaximumSize(50,25);
-    airRight->setMaximumSize(50,25);
+    airUp->setMaximumSize(50,45);
+    airDown->setMaximumSize(50,45);
+    airLeft->setMaximumSize(50,45);
+    airRight->setMaximumSize(50,45);
+    airUp->setMinimumHeight(25);
+    airDown->setMinimumHeight(25);
+    airLeft->setMinimumHeight(25);
+    airRight->setMinimumHeight(25);
     airUp->setEnabled(isOn);
     airDown->setEnabled(isOn);
     airLeft->setEnabled(isOn);
     airRight->setEnabled(isOn);
 
     // Добавление кнопок управления воздухом в макет
-    verticalAirLayout->addWidget(airUp);
-    verticalAirLayout->addWidget(airDown);
-    horizontalAirLayout->addWidget(airLeft);
-    horizontalAirLayout->addWidget(airRight);
+    airBttnsLabel = new QLabel;
+    airBttnsLabel->setText("Воздух");
+    airBttnsLabel->setAlignment(Qt::AlignCenter);
+
+    airLayout->addWidget(airUp, 0, 1);
+    airLayout->addWidget(airDown, 2, 1);
+    airLayout->addWidget(airLeft, 1, 0);
+    airLayout->addWidget(airRight, 1, 2);
+    airLayout->addWidget(airBttnsLabel, 1, 1);
     
      // Кнопка для открытия настроек
     openSettings = new QPushButton("Настройки", this);
@@ -159,8 +172,7 @@ CoolWindow::CoolWindow(QWidget *parent)
     // Добавление всех кнопок в макет
     buttonsLayout->addWidget(onOffButton);
     buttonsLayout->addLayout(changeTempLayout);
-    buttonsLayout->addLayout(verticalAirLayout);
-    buttonsLayout->addLayout(horizontalAirLayout);
+    buttonsLayout->addLayout(airLayout);
     buttonsLayout->addWidget(openSettings);
     buttonsLayout->addWidget(openInput);
 
@@ -168,9 +180,6 @@ CoolWindow::CoolWindow(QWidget *parent)
     mainLayout->addLayout(dataLayout);
     mainLayout->addLayout(buttonsLayout);
 
-    setTemp(); // Установка температуры
-    setHum(); // Установка влажности
-    setPres(); // Установка давления
     setCurrentTheme(); // Установка текущей темы оформления
     openSettings->setStyleSheet(getLockStyle());
     openInput->setStyleSheet(getLockStyle());
@@ -224,6 +233,7 @@ void CoolWindow::applyDarkTheme() {
     openInput->setStyleSheet("border: 1px solid white;");
     tempUp->setStyleSheet("border: 1px solid white;");
     tempDown->setStyleSheet("border: 1px solid white;");
+    airBttnsLabel->setStyleSheet("color: white;");
     airUp->setStyleSheet("border: 1px solid white;");
     airDown->setStyleSheet("border: 1px solid white;");
     airLeft->setStyleSheet("border: 1px solid white;");
@@ -260,6 +270,7 @@ void CoolWindow::applyLightTheme() {
     openInput->setStyleSheet("border: 1px solid black;");
     tempUp->setStyleSheet("border: 1px solid black;");
     tempDown->setStyleSheet("border: 1px solid black;");
+    airBttnsLabel->setStyleSheet("color: black;");
     airUp->setStyleSheet("border: 1px solid black;");
     airDown->setStyleSheet("border: 1px solid black;");
     airLeft->setStyleSheet("border: 1px solid black;");
@@ -665,13 +676,21 @@ void CoolWindow::recalculatePres(PressureUnit from, PressureUnit to) {
 void CoolWindow::toggleIndicator() {
     isOn = !isOn;
     if (isOn) {
-        onOffLabel->setStyleSheet("border-radius: 5px; background-color:green;");
+        airBlades->start();
         onOffButton->setText("Выкл");
 
+        setTemp(); // Установка температуры
+        setHum(); // Установка влажности
+        setPres(); // Установка давления
+        temperatureText->setPlainText("Т: " + QString::number(*temperature) + " " + getTemperatureScaleByUnitId(currentTempUnit));
+        humidityText->setPlainText("В: " + QString::number(*humidity) + " %");
+        pressureText->setPlainText("Д: " + QString::number(*pressure, 'f', 1) + " " + getPressureScaleByUnitId(currentPresUnit));
         setCurrentTheme();
     } else {
-        onOffLabel->setStyleSheet("border-radius: 5px; background-color:red;");
+        airBlades->stop();
         onOffButton->setText("Вкл");
+
+        offSystem();
 
         openSettings->setStyleSheet(getLockStyle());
         openInput->setStyleSheet(getLockStyle());
@@ -690,6 +709,24 @@ void CoolWindow::toggleIndicator() {
     airLeft->setEnabled(isOn);
     airRight->setEnabled(isOn);
     openSettings->setEnabled(isOn);
+}
+
+/**
+ * @brief Задаёт минимальные значения столбцов с показателями, убирает показатель температуры и устанавливает жалюзи в стартовую позицию.
+ */
+void CoolWindow::offSystem() {
+    mercuryLevel->setRect(51, 310, 28, 0);
+    pressureLevel->setRect(251, 310, 28, 0);
+    humidityLevel->setRect(151, 310, 28, 0);
+
+    temperatureText->setPlainText("Т: ");
+    humidityText->setPlainText("В: ");
+    pressureText->setPlainText("Д: ");
+
+    *vGateDir = 0;
+    *hGateDir = 0;
+    updateVArrow();
+    updateHArrow();
 }
 
 /**
